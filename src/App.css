@@ -1,25 +1,36 @@
-.board {
-  display: flex;
-  flex-wrap: wrap;
-  width: 400px;
-  height: 400px;
-}
-
-.square {
-  width: 50px;
-  height: 50px;
+.App {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+  height: 100vh;
 }
 
-/* Estilo para os quadrados pretos */
-.square:nth-child(odd) {
-  background-color: #d18b47;
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
 }
 
-/* Estilo para os quadrados brancos */
-.square:nth-child(even) {
-  background-color: #ffce9e;
+.square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilo para quadrados brancos */
+.white-square {
+  background-color: #ffce9e; /* Cor de fundo para quadrados brancos */
+}
+
+/* Estilo para quadrados pretos */
+.black-square {
+  background-color: #d18b47; /* Cor de fundo para quadrados pretos */
+}
+
+/* Estilo para texto em quadrados */
+.square-text {
+  color: #ffffff; /* Cor do texto */
 }

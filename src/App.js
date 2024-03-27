@@ -13,6 +13,23 @@ function App() {
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
   ]);
 
+  const renderSquare = (piece, row, col) => {
+    const isBlackSquare = (row + col) % 2 === 1;
+    const backgroundColor = isBlackSquare ? '#8B4513' : '#FFDAB9'; // Marron para peças pretas e PeachPuff para peças brancas
+    const color = piece === null ? 'transparent' : piece === piece.toUpperCase() ? 'white' : 'black'; // Define a cor do texto com base na cor da peça
+
+    return (
+      <div
+        key={`${row}-${col}`}
+        className="square"
+        style={{ backgroundColor, color }}
+        onClick={() => handleSquareClick(row, col)}
+      >
+        {piece}
+      </div>
+    );
+  };
+
   const handleSquareClick = (row, col) => {
     const piece = board[row][col];
     if (piece === null) {
@@ -20,7 +37,7 @@ function App() {
       return;
     }
 
-    // Aqui você deve implementar a lógica para verificar a vez do jogador
+    // Implemente aqui a lógica para verificar a vez do jogador
 
     switch (piece.toLowerCase()) {
       case 'p':
@@ -39,56 +56,7 @@ function App() {
     }
   };
 
-  const handlePawnMove = (row, col) => {
-    const forward = row === 6 ? -1 : 1; // Define a direção do movimento do peão
-    const newRow = row + forward;
-
-    // Verifica se a nova posição está dentro do tabuleiro
-    if (newRow < 0 || newRow >= 8) {
-      console.log('Movimento inválido.');
-      return;
-    }
-
-    // Verifica se a nova posição está vazia
-    if (board[newRow][col] === null) {
-      const newBoard = [...board];
-      newBoard[newRow][col] = newBoard[row][col];
-      newBoard[row][col] = null;
-      setBoard(newBoard);
-      console.log(`Peão movido para ${newRow}-${col}`);
-    } else {
-      console.log('Movimento inválido. A posição já está ocupada.');
-    }
-  };
-
-  const handleKingMove = (row, col) => {
-    const possibleMoves = [
-      [row - 1, col - 1],
-      [row - 1, col],
-      [row - 1, col + 1],
-      [row, col - 1],
-      [row, col + 1],
-      [row + 1, col - 1],
-      [row + 1, col],
-      [row + 1, col + 1],
-    ];
-
-    for (let move of possibleMoves) {
-      const [newRow, newCol] = move;
-      if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-        if (board[newRow][newCol] === null) {
-          const newBoard = [...board];
-          newBoard[newRow][newCol] = newBoard[row][col];
-          newBoard[row][col] = null;
-          setBoard(newBoard);
-          console.log(`Rei movido para ${newRow}-${newCol}`);
-          return;
-        }
-      }
-    }
-    console.log('Movimento inválido.');
-  };
-
+ 
   const handleQueenMove = (row, col) => {
     // A rainha pode se mover na horizontal, vertical e diagonal
     // Vamos reutilizar a lógica da torre e do bispo para a rainha
@@ -130,21 +98,6 @@ function App() {
 
     // Verifica os movimentos para a direita
     for (let j = col + 1; j < 8; j++) {
-      if (board[row][j] === null) {
-        const newBoard = [...board];
-        newBoard[row][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Torre movida para ${row}-${j}`);
-        return;
-      } else if (board[row][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
-    }
-
-    // Verifica os movimentos para a esquerda
-    for (let j = col - 1; j >= 0; j--) {
       if (board[row][j] === null) {
         const newBoard = [...board];
         newBoard[row][j] = newBoard[row][col];
@@ -222,45 +175,110 @@ function App() {
     }
   };
 
-  const renderSquare = (piece, row, col) => {
-    if (piece === null) {
-      return (
-        <div
-          key={`${row}-${col}`}
-          className="square"
-          onClick={() => handleSquareClick(row, col)}
-        >
-          {piece}
-        </div>
-      );
-    }
+  // Função para mover o cavalo
+  const handleKnightMove = (row, col) => {
+    const possibleMoves = [
+      [row - 2, col - 1],
+      [row - 2, col + 1],
+      [row - 1, col - 2],
+      [row - 1, col + 2],
+      [row + 1, col - 2],
+      [row + 1, col + 2],
+      [row + 2, col - 1],
+      [row + 2, col + 1],
+    ];
 
-    const black = (row + col) % 2 === 1;
-    const backgroundColor = black ? '#8B4513' : '#FFDAB9'; // Marron para peças pretas e PeachPuff para peças brancas
-    const color = piece === piece.toUpperCase() ? 'white' : 'black'; // Define a cor do texto com base na cor da peça
-    return (
-      <div
-        key={`${row}-${col}`}
-        className="square"
-        style={{ backgroundColor, color }}
-        onClick={() => handleSquareClick(row, col)}
-      >
-        {piece}
-      </div>
-    );
+    for (let move of possibleMoves) {
+      const [newRow, newCol] = move;
+      if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+        if (board[newRow][newCol] === null) {
+          const newBoard = [...board];
+          newBoard[newRow][newCol] = newBoard[row][col];
+          newBoard[row][col] = null;
+          setBoard(newBoard);
+          console.log(`Cavalo movido para ${newRow}-${newCol}`);
+          return;
+        }
+      }
+    }
+    console.log('Movimento inválido.');
   };
 
-  return (
-    <div className="App">
-      <div className="board">
-        {board.map((row, rowIndex) =>
-          row.map((piece, colIndex) =>
-            renderSquare(piece, rowIndex, colIndex)
-          )
-        )}
-      </div>
-    </div>
-  );
-}
+  // Função para mover o peão
+  const handlePawnMove = (row, col) => {
+    const forward = row === 6 ? -1 : 1; // Define a direção do movimento do peão
+    const newRow = row + forward;
 
-export default App;
+    // Verifica se a nova posição está dentro do tabuleiro
+    if (newRow < 0 || newRow >= 8) {
+      console.log('Movimento inválido.');
+      return;
+    }
+
+    // Verifica se a nova posição está vazia
+    if (board[newRow][col] === null) {
+      const newBoard = [...board];
+      newBoard[newRow][col] = newBoard[row][col];
+      newBoard[row][col] = null;
+      setBoard(newBoard);
+      console.log(`Peão movido para ${newRow}-${col}`);
+    } else {
+      console.log('Movimento inválido. A posição já está ocupada.');
+    }
+
+    // Verifica o movimento de avanço de dois quadrados se estiver na posição inicial do peão
+    if (row === 6 && board[row - 1][col] === null && board[row - 2][col] === null) {
+      const newBoard = [...board];
+      newBoard[row - 2][col] = newBoard[row][col];
+      newBoard[row][col] = null;
+      setBoard(newBoard);
+      console.log(`Peão movido para ${row - 2}-${col}`);
+    }
+  };
+
+  // Função para mover o rei
+    // Função para mover o rei
+    const handleKingMove = (row, col) => {
+      const possibleMoves = [
+        [row - 1, col - 1],
+        [row - 1, col],
+        [row - 1, col + 1],
+        [row, col - 1],
+        [row, col + 1],
+        [row + 1, col - 1],
+        [row + 1, col],
+        [row + 1, col + 1],
+      ];
+  
+      for (let move of possibleMoves) {
+        const [newRow, newCol] = move;
+        if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+          if (board[newRow][newCol] === null) {
+            const newBoard = [...board];
+            newBoard[newRow][newCol] = newBoard[row][col];
+            newBoard[row][col] = null;
+            setBoard(newBoard);
+            console.log(`Rei movido para ${newRow}-${newCol}`);
+            return;
+          }
+        }
+      }
+      console.log('Movimento inválido.');
+    };
+  
+    return (
+      <div className="App">
+        <div className="board">
+          {board.map((row, rowIndex) =>
+            row.map((piece, colIndex) =>
+              renderSquare(piece, rowIndex, colIndex)
+            )
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  export default App;
+  
+     
