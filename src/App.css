@@ -1,8 +1,56 @@
+body.light {
+  background-color: #f0f0f0;
+  color: #000000;
+}
+
+body.dark {
+  background-color: #303030;
+  color: #ffffff;
+}
+
+/* Protanopia */
+body.protanopia .white-square {
+  background-color: #e0e0e0;
+}
+
+body.protanopia .black-square {
+  background-color: #b8b8b8;
+}
+
+/* Deuteranopia */
+body.deuteranopia .white-square {
+  background-color: #e0e0e0;
+}
+
+body.deuteranopia .black-square {
+  background-color: #a0a0a0;
+}
+
+/* Tritanopia */
+body.tritanopia .white-square {
+  background-color: #d0d0d0;
+}
+
+body.tritanopia .black-square {
+  background-color: #909090;
+}
+
+/* Acromatopsia */
+body.acromatopsia .white-square {
+  background-color: #c0c0c0;
+}
+
+body.acromatopsia .black-square {
+  background-color: #808080;
+}
+
+/* Geral */
 .App {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   height: 100vh;
+  justify-content: center;
 }
 
 .board {
@@ -20,17 +68,15 @@
   height: 100%;
 }
 
-/* Estilo para quadrados brancos */
+.square-text {
+  color: #ffffff;
+}
+
+/* Estilo para quadrados */
 .white-square {
   background-color: #ffce9e; /* Cor de fundo para quadrados brancos */
 }
 
-/* Estilo para quadrados pretos */
 .black-square {
   background-color: #d18b47; /* Cor de fundo para quadrados pretos */
-}
-
-/* Estilo para texto em quadrados */
-.square-text {
-  color: #ffffff; /* Cor do texto */
 }

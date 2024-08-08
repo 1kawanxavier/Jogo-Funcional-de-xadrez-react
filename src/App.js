@@ -1,9 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme]);
+
+  const handleThemeChange = (event) => {
+    setTheme(event.target.value);
+  };
+
+  const themes = [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'protanopia', label: 'Protanopia' },
+    { value: 'deuteranopia', label: 'Deuteranopia' },
+    { value: 'tritanopia', label: 'Tritanopia' },
+    { value: 'acromatopsia', label: 'Acromatopsia' },
+  ];
+
   const [board, setBoard] = useState([
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'], //torre , cavalo, bispo , rainha, rei,
+    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
     Array(8).fill(null),
     Array(8).fill(null),
@@ -15,29 +34,32 @@ function App() {
 
   const renderSquare = (piece, row, col) => {
     const isBlackSquare = (row + col) % 2 === 1;
-    const backgroundColor = isBlackSquare ? '#8B4513' : '#FFDAB9'; // Marron para peças pretas e PeachPuff para peças brancas
-    const color = piece === null ? 'transparent' : piece === piece.toUpperCase() ? 'white' : 'black'; // Define a cor do texto com base na cor da peça
+    const squareClass = isBlackSquare ? 'black-square' : 'white-square';
+    const textClass = piece ? 'square-text' : '';
 
     return (
       <div
         key={`${row}-${col}`}
-        className="square"
-        style={{ backgroundColor, color }}
+        className={`square ${squareClass}`}
         onClick={() => handleSquareClick(row, col)}
       >
-        {piece}
+        <span className={textClass}>{piece}</span>
       </div>
     );
+  };
+
+  const speak = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR'; // Define o idioma para português
+    speechSynthesis.speak(utterance);
   };
 
   const handleSquareClick = (row, col) => {
     const piece = board[row][col];
     if (piece === null) {
-      console.log('Nenhuma peça nesta posição.');
+      speak('Nenhuma peça nesta posição.');
       return;
     }
-
-    // Implemente aqui a lógica para verificar a vez do jogador
 
     switch (piece.toLowerCase()) {
       case 'p':
@@ -49,143 +71,50 @@ function App() {
       case 'q':
         handleQueenMove(row, col);
         break;
-      // Adicione casos para outras peças, como torre, bispo, cavalo, etc.
       default:
-        console.log('Peça não reconhecida.');
+        speak('Peça não reconhecida.');
         break;
     }
   };
 
- 
-  const handleQueenMove = (row, col) => {
-    // A rainha pode se mover na horizontal, vertical e diagonal
-    // Vamos reutilizar a lógica da torre e do bispo para a rainha
-    handleRookMove(row, col);
-    handleBishopMove(row, col);
-  };
+  const handlePawnMove = (row, col) => {
+    const forward = row === 6 ? -1 : 1;
+    const newRow = row + forward;
 
-  const handleRookMove = (row, col) => {
-    // Movimento horizontal e vertical
-    // Verifica os movimentos para cima
-    for (let i = row - 1; i >= 0; i--) {
-      if (board[i][col] === null) {
-        const newBoard = [...board];
-        newBoard[i][col] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Torre movida para ${i}-${col}`);
-        return;
-      } else if (board[i][col] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
+    if (newRow < 0 || newRow >= 8) {
+      speak('Movimento inválido.');
+      return;
     }
 
-    // Verifica os movimentos para baixo
-    for (let i = row + 1; i < 8; i++) {
-      if (board[i][col] === null) {
-        const newBoard = [...board];
-        newBoard[i][col] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Torre movida para ${i}-${col}`);
-        return;
-      } else if (board[i][col] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
+    if (board[newRow][col] === null) {
+      const newBoard = [...board];
+      newBoard[newRow][col] = newBoard[row][col];
+      newBoard[row][col] = null;
+      setBoard(newBoard);
+      speak(`Peão movido para linha ${newRow+1}, coluna ${col+1}`);
+    } else {
+      speak('Movimento inválido. A posição já está ocupada.');
     }
 
-    // Verifica os movimentos para a direita
-    for (let j = col + 1; j < 8; j++) {
-      if (board[row][j] === null) {
-        const newBoard = [...board];
-        newBoard[row][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Torre movida para ${row}-${j}`);
-        return;
-      } else if (board[row][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
+    if (row === 6 && board[row - 1][col] === null && board[row - 2][col] === null) {
+      const newBoard = [...board];
+      newBoard[row - 2][col] = newBoard[row][col];
+      newBoard[row][col] = null;
+      setBoard(newBoard);
+      speak(`Peão movido para ${row - 2}-${col}`);
     }
   };
 
-  const handleBishopMove = (row, col) => {
-    // Movimento diagonal
-    // Verifica os movimentos para cima e para a esquerda
-    for (let i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--) {
-      if (board[i][j] === null) {
-        const newBoard = [...board];
-        newBoard[i][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Bispo movido para ${i}-${j}`);
-        return;
-      } else if (board[i][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
-    }
-
-    // Verifica os movimentos para cima e para a direita
-    for (let i = row - 1, j = col + 1; i >= 0 && j < 8; i--, j++) {
-      if (board[i][j] === null) {
-        const newBoard = [...board];
-        newBoard[i][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Bispo movido para ${i}-${j}`);
-        return;
-      } else if (board[i][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
-    }
-
-    // Verifica os movimentos para baixo e para a esquerda
-    for (let i = row + 1, j = col - 1; i < 8 && j >= 0; i++, j--) {
-      if (board[i][j] === null) {
-        const newBoard = [...board];
-        newBoard[i][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Bispo movido para ${i}-${j}`);
-        return;
-      } else if (board[i][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
-    }
-
-    // Verifica os movimentos para baixo e para a direita
-    for (let i = row + 1, j = col + 1; i < 8 && j < 8; i++, j++) {
-      if (board[i][j] === null) {
-        const newBoard = [...board];
-        newBoard[i][j] = newBoard[row][col];
-        newBoard[row][col] = null;
-        setBoard(newBoard);
-        console.log(`Bispo movido para ${i}-${j}`);
-        return;
-      } else if (board[i][j] !== null) {
-        console.log('Movimento inválido.');
-        return;
-      }
-    }
-  };
-
-  // Função para mover o cavalo
-  const handleKnightMove = (row, col) => {
+  const handleKingMove = (row, col) => {
     const possibleMoves = [
-      [row - 2, col - 1],
-      [row - 2, col + 1],
-      [row - 1, col - 2],
-      [row - 1, col + 2],
-      [row + 1, col - 2],
-      [row + 1, col + 2],
-      [row + 2, col - 1],
-      [row + 2, col + 1],
+      [row - 1, col - 1],
+      [row - 1, col],
+      [row - 1, col + 1],
+      [row, col - 1],
+      [row, col + 1],
+      [row + 1, col - 1],
+      [row + 1, col],
+      [row + 1, col + 1],
     ];
 
     for (let move of possibleMoves) {
@@ -196,89 +125,137 @@ function App() {
           newBoard[newRow][newCol] = newBoard[row][col];
           newBoard[row][col] = null;
           setBoard(newBoard);
-          console.log(`Cavalo movido para ${newRow}-${newCol}`);
+          speak(`Rei movido para ${newRow}-${newCol}`);
           return;
         }
       }
     }
-    console.log('Movimento inválido.');
+    speak('Movimento inválido.');
   };
 
-  // Função para mover o peão
-  const handlePawnMove = (row, col) => {
-    const forward = row === 6 ? -1 : 1; // Define a direção do movimento do peão
-    const newRow = row + forward;
-
-    // Verifica se a nova posição está dentro do tabuleiro
-    if (newRow < 0 || newRow >= 8) {
-      console.log('Movimento inválido.');
-      return;
-    }
-
-    // Verifica se a nova posição está vazia
-    if (board[newRow][col] === null) {
-      const newBoard = [...board];
-      newBoard[newRow][col] = newBoard[row][col];
-      newBoard[row][col] = null;
-      setBoard(newBoard);
-      console.log(`Peão movido para ${newRow}-${col}`);
-    } else {
-      console.log('Movimento inválido. A posição já está ocupada.');
-    }
-
-    // Verifica o movimento de avanço de dois quadrados se estiver na posição inicial do peão
-    if (row === 6 && board[row - 1][col] === null && board[row - 2][col] === null) {
-      const newBoard = [...board];
-      newBoard[row - 2][col] = newBoard[row][col];
-      newBoard[row][col] = null;
-      setBoard(newBoard);
-      console.log(`Peão movido para ${row - 2}-${col}`);
-    }
+  const handleQueenMove = (row, col) => {
+    handleRookMove(row, col);
+    handleBishopMove(row, col);
   };
 
-  // Função para mover o rei
-    // Função para mover o rei
-    const handleKingMove = (row, col) => {
-      const possibleMoves = [
-        [row - 1, col - 1],
-        [row - 1, col],
-        [row - 1, col + 1],
-        [row, col - 1],
-        [row, col + 1],
-        [row + 1, col - 1],
-        [row + 1, col],
-        [row + 1, col + 1],
-      ];
-  
-      for (let move of possibleMoves) {
-        const [newRow, newCol] = move;
-        if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-          if (board[newRow][newCol] === null) {
-            const newBoard = [...board];
-            newBoard[newRow][newCol] = newBoard[row][col];
-            newBoard[row][col] = null;
-            setBoard(newBoard);
-            console.log(`Rei movido para ${newRow}-${newCol}`);
-            return;
-          }
-        }
+  const handleRookMove = (row, col) => {
+    for (let i = row - 1; i >= 0; i--) {
+      if (board[i][col] === null) {
+        const newBoard = [...board];
+        newBoard[i][col] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Torre movida para linha ${i+1}, coluna ${col+1}`);
+        return;
+      } else if (board[i][col] !== null) {
+        speak('Movimento inválido.');
+        return;
       }
-      console.log('Movimento inválido.');
-    };
-  
-    return (
-      <div className="App">
-        <div className="board">
-          {board.map((row, rowIndex) =>
-            row.map((piece, colIndex) =>
-              renderSquare(piece, rowIndex, colIndex)
-            )
-          )}
-        </div>
-      </div>
-    );
-  }
+    }
 
-  export default App;
-  
-     
+    for (let i = row + 1; i < 8; i++) {
+      if (board[i][col] === null) {
+        const newBoard = [...board];
+        newBoard[i][col] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Torre movida para linha ${i+1}, coluna ${col+1}`);
+        return;
+      } else if (board[i][col] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+
+    for (let j = col + 1; j < 8; j++) {
+      if (board[row][j] === null) {
+        const newBoard = [...board];
+        newBoard[row][j] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Torre movida para linha ${row+1},coluna ${j+1}`);
+        return;
+      } else if (board[row][j] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+  };
+
+  const handleBishopMove = (row, col) => {
+    for (let i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--) {
+      if (board[i][j] === null) {
+        const newBoard = [...board];
+        newBoard[i][j] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Bispo movido para linha ${i+1}, coluna ${j+1}`);
+        return;
+      } else if (board[i][j] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+
+    for (let i = row - 1, j = col + 1; i >= 0 && j < 8; i--, j++) {
+      if (board[i][j] === null) {
+        const newBoard = [...board];
+        newBoard[i][j] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Bispo movido para linha ${i+1}, coluna ${j+1}`);
+        return;
+      } else if (board[i][j] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+
+    for (let i = row + 1, j = col - 1; i < 8 && j >= 0; i++, j--) {
+      if (board[i][j] === null) {
+        const newBoard = [...board];
+        newBoard[i][j] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Bispo movido ppara linha ${i+1}, coluna ${j+1}`);
+        return;
+      } else if (board[i][j] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+
+    for (let i = row + 1, j = col + 1; i < 8 && j < 8; i++, j++) {
+      if (board[i][j] === null) {
+        const newBoard = [...board];
+        newBoard[i][j] = newBoard[row][col];
+        newBoard[row][col] = null;
+        setBoard(newBoard);
+        speak(`Bispo movido para linha ${i+1}, coluna ${j+1}`);
+        return;
+      } else if (board[i][j] !== null) {
+        speak('Movimento inválido.');
+        return;
+      }
+    }
+  };
+
+  return (
+    <div className="App">
+      <select onChange={handleThemeChange} value={theme}>
+        {themes.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <div className="board">
+        {board.flatMap((row, rowIndex) =>
+          row.map((piece, colIndex) => renderSquare(piece, rowIndex, colIndex))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default App;
